@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Noradrénaline – Calcul de dose</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --card: #fff7cc; /* jaune clair */
+      --card-soft: #fffaf0;
+      --text: #1f1f1c;
+      --muted: #66645d;
+      --line: #f0d97a;
+      --primary: #0e6a6e;
+      --primary-dark: #0a5356;
+      --danger: #b3261e;
+      --radius: 18px;
+      --shadow: 0 8px 22px rgba(0, 0, 0, 0.10);
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    body { min-height: 100vh; }
+
+    .app {
+      max-width: 480px;
+      margin: 0 auto;
+      min-height: 100vh;
+      padding: 18px 16px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .header {
+      padding: 6px 2px 4px;
+    }
+
+    .eyebrow {
+      font-size: 13px;
+      line-height: 1.3;
+      color: var(--primary);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+    }
+
+    .subtitle {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .header-alert {
+      margin-top: 8px;
+      font-size: 13px;
+      color: var(--danger);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .card {
+      background: var(--card-soft);
+      border-radius: var(--radius);
+      border: 1px solid #f1e0b5;
+      box-shadow: var(--shadow);
+      padding: 14px 15px 16px;
+    }
+
+    .label {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .weight-display {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 6px;
+      margin: 0 0 12px;
+    }
+
+    .weight-value {
+      font-size: 48px;
+      line-height: 1;
+      font-weight: 800;
+      letter-spacing: -0.05em;
+    }
+
+    .weight-unit {
+      font-size: 18px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 52px 1fr 52px;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .step-btn {
+      height: 52px;
+      width: 52px;
+      border: none;
+      border-radius: 16px;
+      background: #ffeeb0;
+      color: var(--text);
+      font-size: 28px;
+      font-weight: 500;
+      box-shadow: inset 0 0 0 1px #f0d97a;
+      touch-action: manipulation;
+    }
+
+    .step-btn:active {
+      transform: scale(0.97);
+      background: #ffe38f;
+    }
+
+    .slider-wrap {
+      display: flex;
+      align-items: center;
+      height: 52px;
+      padding: 0 4px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      appearance: none;
+      background: transparent;
+    }
+
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 8px;
+      background: linear-gradient(90deg, #ffd64d, #ffb300);
+      border-radius: 999px;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 3px solid #ffb300;
+      margin-top: -9px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+    }
+
+    input[type="range"]::-moz-range-track {
+      height: 8px;
+      background: linear-gradient(90deg, #ffd64d, #ffb300);
+      border-radius: 999px;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 3px solid #ffb300;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+    }
+
+    .hint {
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .quick-weights {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .chip {
+      border: none;
+      border-radius: 999px;
+      padding: 8px 0;
+      background: #fff7cc;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 700;
+      box-shadow: inset 0 0 0 1px #f0d97a;
+      touch-action: manipulation;
+    }
+
+    .chip.active {
+      background: #ffe897;
+      box-shadow: inset 0 0 0 1px #f1c74d;
+    }
+
+    .result-title {
+      font-size: 15px;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+
+    .hero-dose {
+      padding: 16px 16px 14px;
+      border-radius: 18px;
+      background: #ffb300;
+      color: #1f1300;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+      border: 1px solid #f0a000;
+      text-align: center;
+    }
+
+    .hero-dose-label {
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .hero-dose-value {
+      font-size: 50px;
+      line-height: 0.95;
+      font-weight: 900;
+      letter-spacing: -0.05em;
+      margin-bottom: 6px;
+    }
+
+    .hero-dose-unit {
+      font-size: 22px;
+      font-weight: 800;
+      margin-left: 4px;
+    }
+
+    .hero-dose-sub {
+      font-size: 15px;
+      line-height: 1.35;
+    }
+
+    .hero-dose-meta {
+      margin-top: 6px;
+      font-size: 13px;
+      opacity: 0.9;
+    }
+
+    .dilution-line {
+      margin-top: 10px;
+      display: grid;
+      gap: 4px;
+      padding: 12px 13px;
+      background: #fff2d6;
+      border-radius: 16px;
+      border: 1px solid #f2ce8c;
+    }
+
+    .dilution-line strong {
+      color: #5f4a1d;
+      margin-bottom: 2px;
+    }
+
+    .dilution-line .result-value {
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .dilution-line .support {
+      font-size: 13px;
+      color: #5f4a1d;
+    }
+
+    .note {
+      background: #fff7cc;
+      border: 1px solid #f0d97a;
+      border-radius: 14px;
+      padding: 10px 12px;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .note strong {
+      color: var(--danger);
+    }
+
+    .safety {
+      background: #fffaf0;
+      border-radius: 16px;
+      border: 1px solid #f1e0b5;
+      padding: 12px 13px;
+      font-size: 13px;
+    }
+
+    .safety h2 {
+      margin: 0 0 6px;
+      font-size: 14px;
+    }
+
+    .safety ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--text);
+    }
+
+    .safety li {
+      margin: 4px 0;
+      line-height: 1.35;
+    }
+
+    .footer-bar {
+      margin-top: auto;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      padding-top: 6px;
+    }
+
+    @media (max-width: 380px) {
+      h1 { font-size: 24px; }
+      .weight-value { font-size: 42px; }
+      .hero-dose-value { font-size: 44px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="header">
+      <div class="eyebrow">SMUR / SAU</div>
+      <h1>Noradrénaline</h1>
+      <p class="subtitle">Préparation en seringue de 50 ml pour perfusion, de 1 à 150 kg.</p>
+      <p class="header-alert">Toujours vérifier la prescription et le protocole local</p>
+    </section>
+
+    <section class="card">
+      <div class="label">Poids du patient</div>
+      <div class="weight-display" aria-live="polite">
+        <div class="weight-value" id="weightValue">70</div>
+        <div class="weight-unit">kg</div>
+      </div>
+
+      <div class="controls">
+        <button class="step-btn" id="minusBtn" aria-label="Retirer 1 kilogramme">−</button>
+        <div class="slider-wrap">
+          <input id="weightSlider" type="range" min="1" max="150" step="1" value="70" aria-label="Poids du patient en kilogrammes" />
+        </div>
+        <button class="step-btn" id="plusBtn" aria-label="Ajouter 1 kilogramme">+</button>
+      </div>
+
+      <div class="hint">Faites glisser ou utilisez − / + pour ajuster le poids.</div>
+
+      <div class="quick-weights">
+        <button class="chip" data-weight="10">10</button>
+        <button class="chip" data-weight="20">20</button>
+        <button class="chip active" data-weight="70">70</button>
+        <button class="chip" data-weight="90">90</button>
+        <button class="chip" data-weight="120">120</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="result-title">Préparation de la seringue</div>
+      <div class="hero-dose">
+        <div class="hero-dose-label">Volume à prélever</div>
+        <div class="hero-dose-value"><span id="volumeMl">1,1</span><span class="hero-dose-unit">ml</span></div>
+        <div class="hero-dose-sub">= <strong id="doseMg">2,1 mg</strong> de noradrénaline</div>
+        <div class="hero-dose-meta">Ampoule 8 mg / 4 ml (2 mg/ml)</div>
+      </div>
+
+      <div class="dilution-line">
+        <strong>Puis</strong>
+        <div class="result-value">Compléter jusqu’à 50 ml</div>
+        <div class="support">NaCl 0,9 %</div>
+      </div>
+    </section>
+
+    <section class="note">
+      <strong>Repères :</strong> 10 ml/h ≈ 0,1 µg/kg/min avec cette préparation. Débuter à 0,1–0,3 µg/kg/min et adapter à la PAM et au contexte clinique.
+    </section>
+
+    <section class="safety">
+      <h2>Surveillance et précautions</h2>
+      <ul>
+        <li>Scope et pression artérielle en continu.</li>
+        <li>Voie veineuse périphérique de bon calibre dédiée.</li>
+        <li>Prudence en cas de troubles du rythme cardiaque.</li>
+        <li>Risque d’hypertension et de nécrose au point d’injection.</li>
+      </ul>
+    </section>
+
+    <div class="footer-bar">Outil d’aide au calcul, ne remplace pas le jugement clinique.</div>
+  </main>
+
+  <script>
+    const slider = document.getElementById('weightSlider');
+    const weightValue = document.getElementById('weightValue');
+    const doseMg = document.getElementById('doseMg');
+    const volumeMl = document.getElementById('volumeMl');
+    const chips = Array.from(document.querySelectorAll('.chip'));
+    const minusBtn = document.getElementById('minusBtn');
+    const plusBtn = document.getElementById('plusBtn');
+
+    function formatFr(value) {
+      return value.toFixed(1).replace('.', ',');
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function updateQuickWeights(weight) {
+      chips.forEach(chip => {
+        chip.classList.toggle('active', Number(chip.dataset.weight) === weight);
+      });
+    }
+
+    function updateView(weight) {
+      const dose = (weight * 3) / 100;   // mg
+      const volume = dose / 2;          // ml, ampoule 2 mg/ml
+
+      weightValue.textContent = weight;
+      doseMg.textContent = `${formatFr(dose)} mg`;
+      volumeMl.textContent = `${formatFr(volume)}`;
+      updateQuickWeights(weight);
+
+      minusBtn.disabled = weight <= 1;
+      plusBtn.disabled = weight >= 150;
+      minusBtn.style.opacity = weight <= 1 ? '0.45' : '1';
+      plusBtn.style.opacity = weight >= 150 ? '0.45' : '1';
+    }
+
+    function setWeight(weight) {
+      const next = clamp(Number(weight), 1, 150);
+      slider.value = next;
+      updateView(next);
+    }
+
+    slider.addEventListener('input', e => setWeight(e.target.value));
+    minusBtn.addEventListener('click', () => setWeight(Number(slider.value) - 1));
+    plusBtn.addEventListener('click', () => setWeight(Number(slider.value) + 1));
+    chips.forEach(chip => chip.addEventListener('click', () => setWeight(chip.dataset.weight)));
+
+    setWeight(70);
+  </script>
+</body>
+</html>
